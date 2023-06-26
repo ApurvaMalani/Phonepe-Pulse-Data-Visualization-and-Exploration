@@ -1,0 +1,280 @@
+#pip install GitPython
+
+import csv
+import pandas as pd
+import subprocess
+import git
+import os
+import json
+import requests
+
+#Cloning the repository from github
+os.system("git clone https://github.com/PhonePe/pulse.git")
+
+#emty list to hold dictionaries of data for each data/json file
+data_list=[]
+root_dir=(r'/content/pulse/data')
+
+#Looping for all state folders
+for state_dir in os.listdir(os.path.join(root_dir, '/content/pulse/data/aggregated/transaction/country/india/state')):
+  state_path=os.path.join(root_dir, '/content/pulse/data/aggregated/transaction/country/india/state', state_dir)
+
+  if os.path.isdir(state_path):
+    #Looping the year folders
+    for year_dir in os.listdir(state_path):
+      year_path=os.path.join(state_path, year_dir)
+
+      if os.path.isdir(year_path):
+        #looping json file of each quarter
+        for json_file in os.listdir(year_path):
+          if json_file.endswith('.json'):
+            with open(os.path.join(year_path, json_file)) as f:
+              data=json.load(f)
+
+              #extracting the desired data
+              for transaction_data in data['data']['transactionData']:
+                row_dict={
+                    'States':state_dir,
+                    'Transaction_Year':year_dir,
+                    'Quarters': int(json_file.split('.')[0]),
+                    'Transaction_Type': transaction_data['name'],
+                    'Transaction_Count': transaction_data['paymentInstruments'][0]['count'],
+                    'Transaction_Amout': transaction_data['paymentInstruments'][0]['amount']
+                }
+                data_list.append(row_dict)
+
+#converting list of dictionaries to data frame
+df1=pd.DataFrame(data_list)
+df1
+
+#next DataFrame
+path2 = '/content/pulse/data/aggregated/user/country/india/state/'
+agg_user_list = os.listdir(path2)
+
+columns2 = {'State': [], 'Year': [], 'Quarter': [], 'Brands': [], 'Count': [],
+            'Percentage': []}
+for state in agg_user_list:
+    cur_state = path2 + state + '/'
+    agg_year_list = os.listdir(cur_state)
+
+    for year in agg_year_list:
+        cur_year = cur_state + year + "/"
+        agg_file_list = os.listdir(cur_year)
+
+        for file in agg_file_list:
+            cur_file = cur_year + file
+            data = open(cur_file, 'r')
+            B = json.load(data)
+            try:
+                for i in B["data"]["usersByDevice"]:
+                    brand_name = i["brand"]
+                    counts = i["count"]
+                    percents = i["percentage"]
+                    columns2["Brands"].append(brand_name)
+                    columns2["Count"].append(counts)
+                    columns2["Percentage"].append(percents)
+                    columns2["State"].append(state)
+                    columns2["Year"].append(year)
+                    columns2["Quarter"].append(int(file.strip('.json')))
+            except:
+                pass
+df2 = pd.DataFrame(columns2)
+
+
+#next DataFrame
+root_dir=(r'/content/pulse/data')
+#emty list to hold dictionaries of data for each data/json file
+data_list=[]
+
+#Looping for all state folders
+for state_dir in os.listdir(os.path.join(root_dir, '/content/pulse/data/map/transaction/hover/country/india/state')):
+  state_path=os.path.join(root_dir, '/content/pulse/data/map/transaction/hover/country/india/state', state_dir)
+
+  if os.path.isdir(state_path):
+    #Looping the year folders
+    for year_dir in os.listdir(state_path):
+      year_path=os.path.join(state_path, year_dir)
+
+      if os.path.isdir(year_path):
+        #looping json file of each quarter
+        for json_file in os.listdir(year_path):
+          if json_file.endswith('.json'):
+            with open(os.path.join(year_path, json_file)) as f:
+              data=json.load(f)
+
+              #extracting the desired data
+              for hoverDataList in data['data']['hoverDataList']:
+                row_dict={
+                    'States':state_dir,
+                    'Transaction_Year':year_dir,
+                    'Quarters': int(json_file.split('.')[0]),
+                    'Transaction_Type': hoverDataList['metric'][0]['type'],
+                    'Transaction_Count': hoverDataList['metric'][0]['count'],
+                    'Transaction_Amount': hoverDataList['metric'][0]['amount'],
+                    'District': hoverDataList['name']
+                }
+                data_list.append(row_dict)
+
+df3=pd.DataFrame(data_list)
+df3
+
+#next DataFrame
+root_dir='/content/pulse/data/map/user/hover/country/india/state'
+
+#emty list to hold dictionaries of data for each data/json file
+data_list=[]
+
+#Looping for all state folders
+for state_dir in os.listdir(root_dir):
+  state_path=os.path.join(root_dir, state_dir)
+
+  if os.path.isdir(state_path):
+    #Looping the year folders
+    for year_dir in os.listdir(state_path):
+      year_path=os.path.join(state_path, year_dir)
+
+      if os.path.isdir(year_path):
+        #looping json file of each quarter
+        for json_file in os.listdir(year_path):
+          if json_file.endswith('.json'):
+            with open(os.path.join(year_path, json_file)) as f:
+              data=json.load(f)
+
+              #extracting the desired data
+              for district, values in data['data']['hoverData'].items():
+                row_dict={
+                    'States':state_dir,
+                    'Transaction_Year':year_dir,
+                    'Quarters': int(json_file.split('.')[0]),
+                    'RegisteredUsers': values['registeredUsers'],
+                    'AppOpens': values['appOpens'],
+                    'District': district
+                }
+                data_list.append(row_dict)
+
+df4=pd.DataFrame(data_list)
+df4
+
+#next DataFrame
+root_dir=(r'/content/pulse/data')
+
+#emty list to hold dictionaries of data for each data/json file
+data_list=[]
+
+#Looping for all state folders
+for state_dir in os.listdir(os.path.join(root_dir, '/content/pulse/data/top/transaction/country/india/state')):
+  state_path=os.path.join(root_dir, '/content/pulse/data/top/transaction/country/india/state', state_dir)
+
+  if os.path.isdir(state_path):
+    #Looping the year folders
+    for year_dir in os.listdir(state_path):
+      year_path=os.path.join(state_path, year_dir)
+
+      if os.path.isdir(year_path):
+        #looping json file of each quarter
+        for json_file in os.listdir(year_path):
+          if json_file.endswith('.json'):
+            with open(os.path.join(year_path, json_file)) as f:
+              data=json.load(f)
+
+              #extracting the desired data
+              for pincodes in data['data']['pincodes']:
+                row_dict={
+                    'States':state_dir,
+                    'Transaction_Year':year_dir,
+                    'Pincode':pincodes['entityName'],
+                    'Quarters': int(json_file.split('.')[0]),
+                    #'Transaction_Type': data['districts']['metric']['type'],
+                    'Transaction_Count': pincodes['metric']['count'],
+                    'Transaction_Amount': pincodes['metric']['amount'],
+                    #'District': data['districts']['entityName']
+                }
+                data_list.append(row_dict)
+
+df5=pd.DataFrame(data_list)
+df5
+
+#next DataFrame
+root_dir='/content/pulse/data/top/user/country/india/state'
+
+#emty list to hold dictionaries of data for each data/json file
+data_list=[]
+
+#Looping for all state folders
+for state_dir in os.listdir(root_dir):
+  state_path=os.path.join(root_dir, state_dir)
+
+  if os.path.isdir(state_path):
+    #Looping the year folders
+    for year_dir in os.listdir(state_path):
+      year_path=os.path.join(state_path, year_dir)
+
+      if os.path.isdir(year_path):
+        #looping json file of each quarter
+        for json_file in os.listdir(year_path):
+          if json_file.endswith('.json'):
+            with open(os.path.join(year_path, json_file)) as f:
+              data=json.load(f)
+
+              #extracting the desired data
+              for district in data['data']['districts']:
+                row_dict={
+                    'States':state_dir,
+                    'Transaction_Year':year_dir,
+                    'Quarters': int(json_file.split('.')[0]),
+                    'RegisteredUsers': district['registeredUsers'],
+                    'District': district['name'] if 'name' in district else district['pincode'],
+                }
+                data_list.append(row_dict)
+
+df6=pd.DataFrame(data_list)
+df6
+
+#data transformation
+
+#Dropping Duplicates
+d1=df1.drop_duplicates()
+d2=df2.drop_duplicates()
+d3=df3.drop_duplicates()
+d4=df4.drop_duplicates()
+d5=df5.drop_duplicates()
+d6=df6.drop_duplicates()
+
+#Checking Null Values
+
+null_count=d1.isnull().sum()
+print(null_count)
+
+null_count=d2.isnull().sum()
+print(null_count)
+
+null_count=d3.isnull().sum()
+print(null_count)
+
+null_count=d4.isnull().sum()
+print(null_count)
+
+null_count=d5.isnull().sum()
+print(null_count)
+
+null_count=d6.isnull().sum()
+print(null_count)
+
+#Converting DataFrame into CSV files
+d1.to_csv('agg_trans.csv', index=False)
+df2.to_csv('agg_user.csv', index=False)
+d3.to_csv('map_tran.csv', index=False)
+d4.to_csv('map_user.csv', index=False)
+d5.to_csv('top_tran.csv', index=False)
+d6.to_csv('top_user.csv', index=False)
+
+#Creating a csv file containing state names
+data=['Andhra Pradesh','Arunachal Pradesh', 'Assam','Bihar','Chhattisgarh','Goa',
+      'Gujarat','Haryana','Himachal Pradesh','Jharkhand','Karnataka','Kerala',
+      'Madhya Pradesh', 'Maharashtra','Manipur','Meghalaya','Mizoram','Nagaland',
+      'Odisha','Punjab','Rajasthan','Sikkim','Tamil Nadu','Telangana','Tripura',
+      'Uttarakhand','Uttar Pradesh','West Bengal','Ladakh','Jammu & Kashmir',
+      'Puducherry','Lakshadweep','Delhi','Chandigarh','Dadar and Nagar Haveli and Daman & Diu',
+      'Andaman and Nicobar Islands']
+df=pd.DataFrame(data)
+df.to_csv('Statenames.csv', index=False)
