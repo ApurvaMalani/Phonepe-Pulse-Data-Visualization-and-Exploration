@@ -278,3 +278,6 @@ data=['Andhra Pradesh','Arunachal Pradesh', 'Assam','Bihar','Chhattisgarh','Goa'
       'Andaman and Nicobar Islands']
 df=pd.DataFrame(data)
 df.to_csv('Statenames.csv', index=False)
+
+
+#from here, the csv file can be directly uploaded to mysql database by creating tables and importing the repective csv files in them
